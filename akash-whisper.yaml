@@ -1,0 +1,56 @@
+version: "2.0"
+
+services:
+  whisper:
+    image: ghcr.io/openai/whisper-cpu:latest # Replace with GPU-accelerated image if needed
+    expose:
+      - port: 5000
+        as: 80
+        to:
+          - global
+    env:
+      - WHISPER_MODEL=medium  # or base, small, large
+    resources:
+      cpu:
+        units: 2
+      memory:
+        size: 4Gi
+      storage:
+        size: 10Gi
+      gpu:
+        units: 1
+
+profiles:
+  compute:
+    whisper:
+      resources:
+        cpu:
+          units: 2
+        memory:
+          size: 4Gi
+        storage:
+          size: 10Gi
+        gpu:
+          units: 1
+
+  placement:
+    dcloud:
+      attributes:
+        host: rtx3090
+        region: asia
+        country: india
+        city: bangalore
+        gpu: nvidia
+      signedBy:
+        anyOf:
+          - "$PROVIDER"
+      pricing:
+        whisper:
+          denom: uakt
+          amount: 10000  # = 0.01 AKT/hour
+
+deployment:
+  whisper:
+    dcloud:
+      profile: whisper
+      count: 1

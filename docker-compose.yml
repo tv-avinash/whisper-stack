@@ -2,23 +2,20 @@ version: "3.8"
 
 services:
   whisper-api:
-    image: ghcr.io/ggerganov/whisper.cpp:latest
+    image: ghcr.io/jina-ai/whisper-asr-webservice:latest
     container_name: whisper-api
-    command: [ "--threads", "8" ]
-    expose:
-      - "5000"
-    restart: unless-stopped
-
-  nginx:
-    image: nginx:stable-alpine
-    container_name: nginx-reverse-proxy
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - ./razorpay-landing:/usr/share/nginx/html
-    depends_on:
-      - whisper-api
+      - "5000:5000"
+    environment:
+      - ASR_MODEL=medium  # Options: tiny, base, small, medium, large
+      - LANG=auto
+      - NUM_WORKERS=1
+      - BEAM_SIZE=5
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     restart: unless-stopped
